@@ -1,0 +1,111 @@
+---
+title: "Boston Crime Incident Reports (2012-2015)"
+author: "Ke Li"
+date: "02/15/2015"
+output: html_document
+---
+The crime indicent reports data is downloaded from [City of Boston](https://data.cityofboston.gov/api/views/7cdf-6fgx/rows.csv?accessType=DOWNLOAD). 
+## Data Pre-processing
+- Taking of unuseful variables;
+- Expanding the geolocation into lat and lng variables
+
+```{r, cache=T}
+#url = 'https://data.cityofboston.gov/api/views/7cdf-6fgx/rows.csv?accessType=DOWNLOAD'
+#download.file(url, './Crime_Incident_Reports.csv', method='curl')
+#crime = read.csv('Crime_Incident_Reports.csv')
+####Taking of unuseful variables;
+#crime$COMPNOS =NULL
+#crime$NatureCode =NULL
+#crime$X =NULL
+#crime$Y =NULL
+#crime$REPORTINGAREA = NULL
+####Expand the geolocation into lat and lng variables
+#crime$Location = as.character(crime$Location)
+#tmp = strsplit(gsub(".*\\((.*)\\).*", "\\1", crime$Location), ',')
+#tmp = matrix(unlist(tmp), ncol = 2, byrow=T)
+#crime$lat = as.numeric(tmp[, 1])
+#crime$lng = as.numeric(tmp[, 2])
+#crime$DOMESTIC = NULL
+#crime$Location = NULL
+```
+- Replacing the date time with R-formatted date string;
+
+- Converting the Year and Month variables from numeric to factor;
+- Deriving the time of the day the crime took place from variable 'FROMDATE';
+- Deriving whether the crime took place during the day or at night (7:00pm-7:00am);
+- Cutting a day into four chuncks of interval with 6 hours each. 
+
+```{r,}
+#library(lubridate)
+#crime$DateFormatted = mdy_hms(crime$FROMDATE, tz='EST')
+#crime$FROMDATE= NULL
+#### convert to factor
+#crime$Year = as.factor(crime$Year)
+#crime$Month = as.factor(crime$Month)
+#### Derive the hour of the day the crime takes place
+#crime$hr = strftime(crime$DateFormatted, format='%H')
+#### Derive whether the crime took place during the day or at night
+#crime$AtNight=(strftime(crime$DateFormatted, format='%H:%M:%S') > "19:00:00")|
+#(strftime(crime$DateFormatted, format='%H:%M:%S') < "07:00:00")
+#### Cut a day into Four chuncks with 6 hour each.
+#cutpoints = c(0, 6, 12, 18, 24)
+#crime$timeDec = cut(as.numeric(crime$hr), cutpoints)
+```
+
+- Adjusting the letter case confusion (ex, 'Three' and 'THREE' are same thing.);
+
+```{r}
+## UCRPART was found to have upper/lower case confusion
+#crime$UCRPART = as.factor(toupper(crime$UCRPART))
+```
+- Converting the reported districted code for Boston Police Department into readable Boston district names;
+```{r}
+## check the safety at different district
+## replace district code with names
+#distrName = c(
+#A1 = 'Downtown',
+#A15= 'Charlestown',
+#A7= 'East Boston',
+#B2= 'Roxbury',
+#B3= 'Mattapan',
+#C6= 'South Boston',
+#C11= 'Dorchester',
+#D4= 'South End',
+#D14= 'Brighton',
+#E5= 'West Roxbury',
+#E13= 'Jamaica Plain',
+#E18= 'Hyde Park',
+#HTU= 'Human Traffic Unit'
+#)
+#crime$ReptDistrName = as.factor(distrName[as.character(crime$REPTDISTRICT)])
+#crime$REPTDISTRICT = NULL
+```
+## Variables and Data Structure
+First of all, the data has 269849 observations. 
+```{r}
+str(crime)
+```
+The variables given in the data are shown in the following:
+```{r}
+names(crime)
+```
+Where, "MAIN_CRIMECODE" is BRIC classification of the crime code for analysis purposes; UCRPART is Universal Crime Reporting Part number (1,2, 3); timeDec is the time interval of every 6 hours of a day, the cutting points are (0, 6, 12, 18, 24); 'Year', 'Month', 'hr', and 'DateFormatted' are the time variables when the crime took place; and, 'lat' and 'lng' are latitude and longitude, where the crime record took place. The detailed desciption is recorded in the file 'Crime_Incident_Field_Explanation.xlsx'.
+
+## Analysis
+### Geolocations
+```{r}
+library(ggplot2)
+# geographically, where are the different districts?
+qplot(lng, lat, data=crime, color=ReptDistrName, geom='point')+
+theme_bw(base_size=20)+
+  geom_point(size = 5)
+dev.copy(png, file='distrLoc.png', height=1100, width= 1100)
+dev.off()
+#xyplot(lat~lng|ReptDistrName, data=crime)
+#dev.copy(png, file='distrLoc_1.png', height=1100, width= 1100)
+#dev.off()
+```
+
+
+
+
