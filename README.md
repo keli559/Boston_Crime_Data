@@ -25,6 +25,13 @@ Wihtin the original data:
 - Location: geolocation (latitude, longitude) of the crime
 
 
+##Files:
+
+- crime_markdown.md: the writeup of all the code and analysis with plots
+- Crime_Incident_Field_Explanation.xlsx: the explanation of variables, downloaded from data.cityofboston.gov
+- crime_program.r: the source code of the analysis written in R
+- "png" files: plots included in the analysis, saved as backs-up
+
 
 
 
